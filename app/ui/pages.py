@@ -8,6 +8,7 @@ from pathlib import Path
 from nicegui import app, ui
 
 from app.core.config import settings
+from app.ui.layout import page_layout
 from app.services import checkin_service, event_service, export_service, qr_service
 from app.services.event_service import ValidationError
 
@@ -111,16 +112,7 @@ class EventQRPage:
 
     # ------------------------------------------------------------- estructura
     def build(self) -> None:
-        ui.add_head_html(CAMERA_HEAD_HTML)
-        ui.colors(primary="#4338ca")
-        with ui.header().classes("items-center gap-3 px-6 py-3 shadow-md"):
-            ui.icon("qr_code_2", size="32px")
-            ui.label(settings.APP_TITLE).classes("text-h6 text-weight-bold")
-            ui.label("Control de asistencia y registro de eventos").classes(
-                "text-caption opacity-80"
-            )
-
-        with ui.column().classes("w-full max-w-6xl mx-auto p-4 gap-4"):
+        with page_layout(CAMERA_HEAD_HTML):
             with ui.tabs().classes("w-full") as tabs:
                 ui.tab("events", label="Eventos", icon="event")
                 ui.tab("register", label="Inscripción", icon="person_add")
@@ -356,7 +348,13 @@ class EventQRPage:
                 .props("outlined autofocus autocomplete=off input-class=text-center")
                 .classes("w-full max-w-xl text-h6")
             )
+            notes_input = (
+                ui.input(placeholder="Notas opcionales (ej. Ponente, Invitado)")
+                .props("outlined dense clearable")
+                .classes("w-full max-w-xl")
+            )
             result_box = ui.column().classes("w-full max-w-xl items-stretch")
+
 
         with ui.card().classes("w-full"):
             ui.label("Últimas lecturas").classes("text-h6")
@@ -377,7 +375,9 @@ class EventQRPage:
             raw = (raw or "").strip()
             if not raw:
                 return
-            result = checkin_service.process_check_in(raw)
+            result = checkin_service.process_check_in(raw, notes=notes_input.value)
+            if result.ok:
+                notes_input.value = ""
             classes, icon, title = STATUS_STYLES[result.status]
 
             result_box.clear()

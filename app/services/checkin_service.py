@@ -1,5 +1,6 @@
 """Validación de tokens QR y registro de asistencia diaria."""
 import uuid
+from app.core.config import local_now
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -36,7 +37,7 @@ def process_check_in(raw_token: str | None, notes: str | None = None) -> CheckIn
     except ValueError:
         return CheckInResult(INVALID, "El código leído no tiene un formato válido.")
 
-    now = datetime.now()
+    now = local.now()
     today = now.date()
 
     with get_session() as session:

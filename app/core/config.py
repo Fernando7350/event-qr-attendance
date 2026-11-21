@@ -1,4 +1,7 @@
 """Configuración de la aplicación mediante variables de entorno / .env."""
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -7,6 +10,7 @@ class Settings(BaseSettings):
     STORAGE_SECRET: str = "cambia-esto-en-produccion"
     APP_TITLE: str = "EventQR"
     APP_PORT: int = 8080
+    APP_TIMEZONE: str = "America/La_Paz"
     DB_USE_NULLPOOL: bool = False
 
     model_config = SettingsConfigDict(
@@ -17,3 +21,8 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+def local_now() -> datetime:
+    """Fecha y hora actual en la zona configurada (naive para columnas TIMESTAMP)."""
+    return datetime.now(ZoneInfo(settings.APP_TIMEZONE)).replace(tzinfo=None)

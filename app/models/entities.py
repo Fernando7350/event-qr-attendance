@@ -1,16 +1,13 @@
 """Modelos relacionales de EventQR."""
 import uuid
-from datetime import date, datetime
+from datetime import date
 from typing import Optional
 
 from pydantic import NaiveDatetime
 from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, SQLModel
 
-
-def _utcnow() -> datetime:
-    """UTC naive (compatible con columnas TIMESTAMP sin zona)."""
-    return datetime.utcnow()
+from app.core.config import local_now
 
 
 class Event(SQLModel, table=True):
@@ -21,7 +18,7 @@ class Event(SQLModel, table=True):
     description: Optional[str] = Field(default=None)
     location: Optional[str] = Field(default=None, max_length=200)
     start_date: date
-    created_at: NaiveDatetime = Field(default_factory=_utcnow)
+    created_at: NaiveDatetime = Field(default_factory=local_now)
 
 
 class Participant(SQLModel, table=True):
@@ -35,7 +32,7 @@ class Participant(SQLModel, table=True):
         default_factory=uuid.uuid4, unique=True, index=True, nullable=False
     )
     event_id: int = Field(foreign_key="events.id", index=True)
-    registered_at: NaiveDatetime = Field(default_factory=_utcnow)
+    registered_at: NaiveDatetime = Field(default_factory=local_now)
 
 
 class Attendance(SQLModel, table=True):
@@ -49,5 +46,5 @@ class Attendance(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     participant_id: int = Field(foreign_key="participants.id", index=True)
     attendance_date: date = Field(index=True)
-    check_in_time: NaiveDatetime = Field(default_factory=datetime.now)
+    check_in_time: NaiveDatetime = Field(default_factory=local_now)
     notes: Optional[str] = Field(default=None)
